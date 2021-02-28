@@ -14,10 +14,10 @@ let CONFIG, CONFIGDIR;
 let cd = (path) => resolve(CONFIGDIR, path);
 
 // Throws if no config file
-try {
-  // TODO: make configurable?
-  const configPath = resolve(process.cwd(), './postcss.config');
-  let configFile = require(configPath);
+const configPath = resolve(process.cwd(), './postcss.config.js');
+
+CONFIG = import(configPath).then(configMod => {
+  let configFile = configMod.default;
 
   // Update configdir
   CONFIGDIR = dirname(configPath);
@@ -38,14 +38,13 @@ try {
   } else {
     throw(new Error('Invalid config file!'));
   }
-}
-catch(e) {
-  console.error(e.message);
+
+}).catch(e => {
+  console.error(e);
   console.error('Make sure you configure postcss-generate first!');
   console.error('Check the docs to see how to use the "generate" property of postcss.config.js!');
   process.exit(1);
-}
-
+});
 
 function mkProcessOpts(src) {
   return ({
@@ -133,6 +132,9 @@ module.exports = {
     return CONFIG;
   },
   async run() {
+    // Wait until the config loaded
+    await CONFIG;
+
     // Create a processor by using the plugins from the config file
     const processor = postcss(CONFIG.plugins);
 
