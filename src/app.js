@@ -7,7 +7,7 @@ const { dirname, basename, resolve } = require('path');
 
 const DEBUG = process.env.DEBUG;
 
-let CONFIG, CONFIGDIR;
+let CONFIG, CONFIGDIR, LOAD_CONFIG;
 
 // Convenience function for resolving relative references to the config directory
 // This will keep absolute paths intact
@@ -16,7 +16,7 @@ let cd = (path) => resolve(CONFIGDIR, path);
 // Throws if no config file
 const configPath = resolve(process.cwd(), './postcss.config.js');
 
-CONFIG = import(configPath).then(configMod => {
+LOAD_CONFIG = import(configPath).then(configMod => {
   let configFile = configMod.default;
 
   // Update configdir
@@ -128,12 +128,14 @@ async function concat(results, outfile, opts = {}) {
 }
 
 module.exports = {
-  config() {
+  async config() {
+    await LOAD_CONFIG;
     return CONFIG;
   },
   async run() {
     // Wait until the config loaded
-    await CONFIG;
+    // TODO: actually reload config if file changed
+    await LOAD_CONFIG;
 
     // Create a processor by using the plugins from the config file
     const processor = postcss(CONFIG.plugins);

@@ -1,8 +1,9 @@
 const postCSSGenerate = require("./src/app");
 const DEBUG = process.env.DEBUG;
 
-module.exports = function(eleventyConfig) {
-  pcc = postCSSGenerate.config().generate;
+module.exports = async function(eleventyConfig) {
+  const config = await postCSSGenerate.config();
+  const pcc = config.generate;
   if (DEBUG) console.log(`[postcss-generate] Config:`, pcc);
 
   /* Add CSS watch targets */
@@ -18,6 +19,6 @@ module.exports = function(eleventyConfig) {
 
   /* Run inital build */
   if (DEBUG) console.log(`[postcss-generate] Initial style generation...`);
-  return postCSSGenerate.run();
+  await postCSSGenerate.run();
   /* TODO: https://www.11ty.dev/docs/events/#beforebuild */
 };
